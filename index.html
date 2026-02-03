@@ -13,6 +13,7 @@
             --text: #f8fafc;
             --text-muted: #94a3b8;
             --success: #10b981;
+            --error: #ef4444;
         }
 
         * {
@@ -164,10 +165,15 @@
             padding: 1rem;
             color: var(--text-muted);
             font-size: 0.9rem;
+            white-space: pre-wrap;
         }
 
-        .status.generating {
+        .status.success {
             color: var(--success);
+        }
+
+        .status.error {
+            color: var(--error);
         }
 
         .player-section {
@@ -303,15 +309,19 @@
         const App = {
             duration: 120,
             intensity: 50,
-            isPlaying: false,
             synth: null,
+            bassSynth: null,
             recorder: null,
             recordedChunks: [],
             audioBlob: null,
+            audioContext: null,
+            destNode: null,
+            isGenerating: false,
 
             init() {
                 this.cacheDOM();
                 this.bindEvents();
+                this.log('Listo. Haz clic en "Generar Música" para comenzar.');
             },
 
             cacheDOM() {
@@ -341,10 +351,38 @@
                 });
             },
 
+            log(message, type = '') {
+                this.status.textContent = message;
+                this.status.className = 'status ' + type;
+            },
+
             async initAudio() {
-                if (!Tone.context.state === 'running') {
-                    await Tone.start();
+                try {
+                    if (Tone.context.state !== 'running') {
+                        await Tone.start();
+                    }
+                    this.audioContext = Tone.context;
+                    this.destNode = this.audioContext.createMediaStreamDestination();
+                    return true;
+                } catch (error) {
+                    console.error('Error initializing audio:', error);
+                    throw new Error('No se pudo inicializar el audio. Asegúrate de usar un navegador moderno (Chrome, Firefox, Edge).');
                 }
+            },
+
+            getSupportedMimeType() {
+                const types = [
+                    'audio/webm;codecs=opus',
+                    'audio/webm',
+                    'audio/ogg;codecs=opus',
+                    'audio/mp4'
+                ];
+                for (const type of types) {
+                    if (MediaRecorder.isTypeSupported(type)) {
+                        return type;
+                    }
+                }
+                return 'audio/webm';
             },
 
             createSynth() {
@@ -365,9 +403,10 @@
                     wet: 0.3
                 }).toDestination();
                 synth.connect(reverb);
+                synth.connect(this.destNode);
             },
 
-            getNote(duration, beatIndex) {
+            getNote(beatIndex) {
                 const scale = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'D5', 'E5'];
                 const pattern = this.intensity > 50 ? 2 : 1;
 
@@ -381,22 +420,32 @@
                 }
             },
 
-            getBassNote(duration, beatIndex) {
+            getBassNote(beatIndex) {
                 const bassScale = ['C3', 'A3', 'F3', 'G3'];
                 const progressionIndex = Math.floor(beatIndex / 4) % 4;
                 return bassScale[progressionIndex];
             },
 
             async generate() {
+                if (this.isGenerating) return;
+
                 try {
+                    this.isGenerating = true;
                     this.generateBtn.disabled = true;
-                    this.status.textContent = 'Inicializando audio...';
+                    this.log('Inicializando audio...');
+
                     await this.initAudio();
 
-                    this.status.textContent = 'Generando música...';
+                    this.log('Generando música (esto puede tomar unos segundos)...');
 
                     this.synth = this.createSynth();
                     this.addReverb(this.synth);
+
+                    this.bassSynth = new Tone.Synth({
+                        oscillator: { type: 'sine' },
+                        envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 0.8 }
+                    }).toDestination();
+                    this.addReverb(this.bassSynth);
 
                     const bpm = 65;
                     Tone.getTransport().bpm.value = bpm;
@@ -406,16 +455,19 @@
                     const bassNotes = [];
 
                     for (let i = 0; i < totalBeats; i++) {
-                        const note = this.getNote(this.duration, i);
+                        const note = this.getNote(i);
                         notes.push({ time: i * (60 / bpm), note });
 
                         if (i % 4 === 0) {
-                            bassNotes.push({ time: i * (60 / bpm), note: this.getBassNote(this.duration, i) });
+                            bassNotes.push({ time: i * (60 / bpm), note: this.getBassNote(i) });
                         }
                     }
 
-                    this.recorder = new MediaRecorder(Tone.getDestination().context.createMediaStreamDestination(), {
-                        mimeType: 'audio/webm'
+                    const mimeType = this.getSupportedMimeType();
+                    console.log('Using MIME type:', mimeType);
+
+                    this.recorder = new MediaRecorder(this.destNode.stream, {
+                        mimeType: mimeType
                     });
                     this.recordedChunks = [];
 
@@ -425,13 +477,23 @@
                         }
                     };
 
+                    this.recorder.onerror = (e) => {
+                        console.error('Recorder error:', e);
+                    };
+
                     this.recorder.onstop = () => {
-                        this.audioBlob = new Blob(this.recordedChunks, { type: 'audio/webm' });
-                        const url = URL.createObjectURL(this.audioBlob);
-                        this.audioPlayer.src = url;
-                        this.playerSection.classList.add('visible');
-                        this.status.textContent = '';
+                        try {
+                            this.audioBlob = new Blob(this.recordedChunks, { type: mimeType });
+                            const url = URL.createObjectURL(this.audioBlob);
+                            this.audioPlayer.src = url;
+                            this.playerSection.classList.add('visible');
+                            this.log('¡Música lista! Haz clic en "Descargar WAV" para guardarla.', 'success');
+                        } catch (error) {
+                            console.error('Error creating blob:', error);
+                            this.log('Error al procesar el audio. Intenta de nuevo.', 'error');
+                        }
                         this.generateBtn.disabled = false;
+                        this.isGenerating = false;
                     };
 
                     this.recorder.start();
@@ -440,51 +502,64 @@
                         this.synth.triggerAttackRelease(n.note, '8n', Tone.now() + n.time);
                     });
 
-                    const bassSynth = new Tone.Synth({
-                        oscillator: { type: 'sine' },
-                        envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 0.8 }
-                    }).toDestination();
-                    this.addReverb(bassSynth);
-
                     bassNotes.forEach(n => {
-                        bassSynth.triggerAttackRelease(n.note, '2n', Tone.now() + n.time);
+                        this.bassSynth.triggerAttackRelease(n.note, '2n', Tone.now() + n.time);
                     });
 
                     const endTime = totalBeats * (60 / bpm);
                     Tone.getTransport().start();
 
+                    const progressTime = Math.min(endTime * 1000, 5000);
                     setTimeout(() => {
-                        this.recorder.stop();
-                        Tone.getTransport().stop();
-                        this.status.textContent = '¡Música lista!';
-                    }, (endTime + 1) * 1000);
+                        if (this.recorder && this.recorder.state === 'recording') {
+                            this.log('Finalizando grabación...');
+                        }
+                    }, progressTime);
+
+                    setTimeout(() => {
+                        if (this.recorder && this.recorder.state === 'recording') {
+                            this.recorder.stop();
+                            Tone.getTransport().stop();
+                        }
+                    }, (endTime + 2) * 1000);
 
                 } catch (error) {
-                    console.error('Error:', error);
-                    this.status.textContent = 'Error al generar. Intenta de nuevo.';
+                    console.error('Error in generate:', error);
+                    this.log('Error: ' + error.message, 'error');
                     this.generateBtn.disabled = false;
+                    this.isGenerating = false;
                 }
             },
 
             async download() {
-                if (!this.audioBlob) return;
+                if (!this.audioBlob) {
+                    this.log('Genera música primero.', 'error');
+                    return;
+                }
 
-                const arrayBuffer = await this.audioBlob.arrayBuffer();
-                const wavBlob = this.audioBufferToWav(arrayBuffer);
-                const url = URL.createObjectURL(wavBlob);
+                try {
+                    const arrayBuffer = await this.audioBlob.arrayBuffer();
+                    const wavBlob = this.audioBufferToWav(arrayBuffer);
+                    const url = URL.createObjectURL(wavBlob);
 
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `musica-cuento-${this.duration}s.wav`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `musica-cuento-${this.duration}s.wav`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    this.log('¡Descarga iniciada!', 'success');
+                } catch (error) {
+                    console.error('Error downloading:', error);
+                    this.log('Error al descargar. Intenta de nuevo.', 'error');
+                }
             },
 
             audioBufferToWav(buffer) {
                 const audioData = new Float32Array(buffer);
-                const sampleRate = Tone.context.sampleRate;
+                const sampleRate = this.audioContext.sampleRate;
                 const length = audioData.length;
                 const numChannels = 1;
                 const bytesPerSample = 2;
@@ -496,10 +571,16 @@
                 const arrayBuffer = new ArrayBuffer(bufferSize);
                 const view = new DataView(arrayBuffer);
 
-                this.writeString(view, 0, 'RIFF');
+                const writeString = (offset, string) => {
+                    for (let i = 0; i < string.length; i++) {
+                        view.setUint8(offset + i, string.charCodeAt(i));
+                    }
+                };
+
+                writeString(0, 'RIFF');
                 view.setUint32(4, bufferSize - 8, true);
-                this.writeString(view, 8, 'WAVE');
-                this.writeString(view, 12, 'fmt ');
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
                 view.setUint32(16, 16, true);
                 view.setUint16(20, 1, true);
                 view.setUint16(22, numChannels, true);
@@ -507,7 +588,7 @@
                 view.setUint32(28, byteRate, true);
                 view.setUint16(32, blockAlign, true);
                 view.setUint16(34, bytesPerSample * 8, true);
-                this.writeString(view, 36, 'data');
+                writeString(36, 'data');
                 view.setUint32(40, dataSize, true);
 
                 const offset = 44;
@@ -519,16 +600,12 @@
                 return new Blob([arrayBuffer], { type: 'audio/wav' });
             },
 
-            writeString(view, offset, string) {
-                for (let i = 0; i < string.length; i++) {
-                    view.setUint8(offset + i, string.charCodeAt(i));
-                }
-            },
-
             new() {
                 this.playerSection.classList.remove('visible');
                 this.audioPlayer.src = '';
-                this.status.textContent = '';
+                this.recordedChunks = [];
+                this.audioBlob = null;
+                this.log('Listo. Haz clic en "Generar Música" para crear una nueva pieza.');
             }
         };
 
