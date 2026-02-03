@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generadores de Música IA Gratis</title>
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --primary-hover: #6d28d9;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tool-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.2);
+        }
+
+        .tool-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tool-card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tag-free {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .tag-commercial {
+            background: rgba(124, 58, 237, 0.2);
+            color: #a78bfa;
+        }
+
+        .tag-api {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .tool-btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--card);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Volver al generador local</a>
+
+        <header>
+            <h1>Generadores de Música IA</h1>
+            <p>Crea música instrumental sin copyright para tus cuentos</p>
+        </header>
+
+        <h2 class="section-title">Con Piano Real</h2>
+
+        <div class="tools-grid">
+            <div class="tool-card">
+                <div class="tool-icon">🎹</div>
+                <h2>Mubert</h2>
+                <p>Genera piano samples reales con IA. API disponible o usa nuestra app.</p>
+                <span class="tag tag-free">Gratis</span>
+                <span class="tag tag-commercial">Comercial</span>
+                <span class="tag tag-api">API</span>
+                <br>
+                <a href="https://mubert.com/ai-music-generator" target="_blank" class="tool-btn">Visitar →</a>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-icon">🎵</div>
+                <h2>Boomy</h2>
+                <p>Crea canciones completas con IA. Súbelas a Spotify y gana dinero.</p>
+                <span class="tag tag-free">Gratis</span>
+                <span class="tag tag-commercial">Ganancias 70%</span>
+                <br>
+                <a href="https://boomy.com" target="_blank" class="tool-btn">Visitar →</a>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-icon">🎼</div>
+                <h2>AIVA</h2>
+                <p>Compositor de música IA. Piano, orquestal, cinematic. License CC0.</p>
+                <span class="tag tag-free">Free tier</span>
+                <span class="tag tag-commercial">Comercial</span>
+                <br>
+                <a href="https://aiva.ai" target="_blank" class="tool-btn">Visitar →</a>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-icon">🎸</div>
+                <h2>Soundraw</h2>
+                <p>Música ilimitada sin copyright. Piano, bossa nova, jazz relaxante.</p>
+                <span class="tag tag-free">Plan gratis</span>
+                <span class="tag tag-commercial">Comercial</span>
+                <br>
+                <a href="https://soundraw.io" target="_blank" class="tool-btn">Visitar →</a>
+            </div>
+        </div>
+
+        <h2 class="section-title">Para Desarrolladores</h2>
+
+        <div class="tools-grid">
+            <div class="tool-card">
+                <div class="tool-icon">🤖</div>
+                <h2>Google Magenta</h2>
+                <p>Librería open source de IA para música. MusicVAE, NSynth.</p>
+                <span class="tag tag-free">100% Gratis</span>
+                <span class="tag tag-api">Open Source</span>
+                <br>
+                <a href="https://magenta.tensorflow.org" target="_blank" class="tool-btn">Visitar →</a>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-icon">🎛️</div>
+                <h2>Hugging Face</h2>
+                <p>Modelos de música IA. MusicGen, Riffusion. API gratuita disponible.</p>
+                <span class="tag tag-free">Free tier</span>
+                <span class="tag tag-api">API</span>
+                <br>
+                <a href="https://huggingface.co/models?pipeline_tag=text-to-audio" target="_blank" class="tool-btn">Visitar →</a>
+            </div>
+        </div>
+
+        <footer>
+            <p>Todos los enlaces son a servicios externos.</p>
+            <p>Licencia de uso: consulta cada plataforma.</p>
+        </footer>
+    </div>
+</body>
+</html>

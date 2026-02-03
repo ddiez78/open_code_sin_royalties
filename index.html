@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Música para Cuentos - Generador de Piano Calmado</title>
+    <title>Música para Cuentos - Generador IA</title>
     <style>
         :root {
             --primary: #7c3aed;
@@ -14,6 +14,7 @@
             --text-muted: #94a3b8;
             --success: #10b981;
             --error: #ef4444;
+            --warning: #f59e0b;
         }
 
         * {
@@ -75,6 +76,45 @@
             color: var(--text);
         }
 
+        .api-key-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 8px;
+        }
+
+        .api-key-section label {
+            color: var(--warning);
+        }
+
+        .api-key-section input {
+            width: 100%;
+            padding: 0.75rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .api-key-section input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .api-help {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .api-help a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
         .duration-options {
             display: flex;
             gap: 0.5rem;
@@ -95,42 +135,6 @@
         .duration-btn.active,
         .duration-btn:hover {
             background: var(--primary);
-        }
-
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .slider {
-            flex: 1;
-            -webkit-appearance: none;
-            height: 6px;
-            background: #334155;
-            border-radius: 3px;
-            outline: none;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            background: var(--primary);
-            border-radius: 50%;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .slider::-webkit-slider-thumb:hover {
-            background: var(--primary-hover);
-        }
-
-        .slider-value {
-            min-width: 80px;
-            text-align: right;
-            color: var(--text-muted);
-            font-size: 0.9rem;
         }
 
         .generate-btn {
@@ -176,6 +180,10 @@
             color: var(--error);
         }
 
+        .status.warning {
+            color: var(--warning);
+        }
+
         .player-section {
             display: none;
         }
@@ -190,8 +198,14 @@
             border-radius: 8px;
         }
 
+        .download-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
         .download-btn {
-            width: 100%;
+            flex: 1;
             padding: 0.875rem;
             font-size: 1rem;
             font-weight: 500;
@@ -214,7 +228,6 @@
         .new-btn {
             width: 100%;
             padding: 0.75rem;
-            margin-top: 0.75rem;
             background: transparent;
             color: var(--text-muted);
             border: 1px solid #334155;
@@ -250,6 +263,10 @@
             header h1 {
                 font-size: 1.5rem;
             }
+
+            .download-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -262,6 +279,15 @@
 
         <main>
             <div class="card">
+                <div class="api-key-section">
+                    <label>API Key de Mubert</label>
+                    <input type="password" id="apiKey" placeholder="Ingresa tu API key">
+                    <p class="api-help">
+                        Obtén tu API key gratis en <a href="https://mubert.com/ai-music-generator" target="_blank">mubert.com</a>
+                        <br>Free tier: 1000 generaciones/mes
+                    </p>
+                </div>
+
                 <div class="control-group">
                     <label>Duración</label>
                     <div class="duration-options">
@@ -271,57 +297,51 @@
                     </div>
                 </div>
 
-                <div class="control-group">
-                    <label>Intensidad</label>
-                    <div class="slider-container">
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">Suave</span>
-                        <input type="range" class="slider" id="intensity" min="0" max="100" value="50">
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">Rich</span>
-                    </div>
-                </div>
-
                 <button class="generate-btn" id="generateBtn">
-                    <span>🎵</span>
                     <span>Generar Música</span>
                 </button>
 
-                <div class="status" id="status"></div>
+                <div class="status" id="status">
+Generador musical IA
+Piano samples reales
+Licencia CC0 (uso comercial libre)
+                </div>
             </div>
 
             <div class="card player-section" id="playerSection">
                 <audio class="audio-player" id="audioPlayer" controls></audio>
-                <button class="download-btn" id="downloadBtn">
-                    <span>⬇️</span>
-                    <span>Descargar WAV</span>
-                </button>
-                <button class="new-btn" id="newBtn">🔄 Generar Nueva</button>
+                
+                <div class="download-buttons">
+                    <button class="download-btn" id="downloadWavBtn">
+                        <span>WAV</span>
+                    </button>
+                    <button class="download-btn" id="downloadMp3Btn">
+                        <span>MP3</span>
+                    </button>
+                </div>
+                
+                <button class="new-btn" id="newBtn">Generar Nueva</button>
             </div>
         </main>
 
         <footer>
             <p>Licencia: <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank">CC0 (Dominio Público)</a></p>
-            <p>Uso comercial completamente libre</p>
+            <p>Música generada con Mubert AI</p>
+            <p style="margin-top: 1rem;"><a href="generadores.html" style="color: var(--primary);">🎵 Ver más generadores de música IA →</a></p>
         </footer>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <script>
         const App = {
             duration: 120,
-            intensity: 50,
-            synth: null,
-            bassSynth: null,
-            recorder: null,
-            recordedChunks: [],
+            apiKey: '',
             audioBlob: null,
-            audioContext: null,
-            destNode: null,
             isGenerating: false,
 
             init() {
                 this.cacheDOM();
                 this.bindEvents();
-                this.log('Listo. Haz clic en "Generar Música" para comenzar.');
+                this.loadApiKey();
             },
 
             cacheDOM() {
@@ -329,19 +349,19 @@
                 this.status = document.getElementById('status');
                 this.playerSection = document.getElementById('playerSection');
                 this.audioPlayer = document.getElementById('audioPlayer');
-                this.downloadBtn = document.getElementById('downloadBtn');
+                this.apiKeyInput = document.getElementById('apiKey');
+                this.downloadWavBtn = document.getElementById('downloadWavBtn');
+                this.downloadMp3Btn = document.getElementById('downloadMp3Btn');
                 this.newBtn = document.getElementById('newBtn');
                 this.durationBtns = document.querySelectorAll('.duration-btn');
-                this.intensitySlider = document.getElementById('intensity');
             },
 
             bindEvents() {
                 this.generateBtn.addEventListener('click', () => this.generate());
-                this.downloadBtn.addEventListener('click', () => this.download());
+                this.downloadWavBtn.addEventListener('click', () => this.download('wav'));
+                this.downloadMp3Btn.addEventListener('click', () => this.download('mp3'));
                 this.newBtn.addEventListener('click', () => this.new());
-                this.intensitySlider.addEventListener('input', (e) => {
-                    this.intensity = parseInt(e.target.value);
-                });
+                this.apiKeyInput.addEventListener('input', () => this.saveApiKey());
                 this.durationBtns.forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         this.durationBtns.forEach(b => b.classList.remove('active'));
@@ -351,217 +371,146 @@
                 });
             },
 
+            loadApiKey() {
+                this.apiKey = localStorage.getItem('mubert_api_key') || '';
+                if (this.apiKey) {
+                    this.apiKeyInput.value = this.apiKey;
+                }
+            },
+
+            saveApiKey() {
+                this.apiKey = this.apiKeyInput.value.trim();
+                localStorage.setItem('mubert_api_key', this.apiKey);
+            },
+
             log(message, type = '') {
                 this.status.textContent = message;
                 this.status.className = 'status ' + type;
             },
 
-            async initAudio() {
-                try {
-                    if (Tone.context.state !== 'running') {
-                        await Tone.start();
-                    }
-                    this.audioContext = Tone.context;
-                    this.destNode = this.audioContext.createMediaStreamDestination();
-                    return true;
-                } catch (error) {
-                    console.error('Error initializing audio:', error);
-                    throw new Error('No se pudo inicializar el audio. Asegúrate de usar un navegador moderno (Chrome, Firefox, Edge).');
-                }
-            },
-
-            getSupportedMimeType() {
-                const types = [
-                    'audio/webm;codecs=opus',
-                    'audio/webm',
-                    'audio/ogg;codecs=opus',
-                    'audio/mp4'
-                ];
-                for (const type of types) {
-                    if (MediaRecorder.isTypeSupported(type)) {
-                        return type;
-                    }
-                }
-                return 'audio/webm';
-            },
-
-            createSynth() {
-                return new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: 'triangle' },
-                    envelope: {
-                        attack: 0.05,
-                        decay: 0.3,
-                        sustain: 0.4,
-                        release: 0.8
-                    }
-                }).toDestination();
-            },
-
-            addReverb(synth) {
-                const reverb = new Tone.Reverb({
-                    decay: 3,
-                    wet: 0.3
-                }).toDestination();
-                synth.connect(reverb);
-                synth.connect(this.destNode);
-            },
-
-            getNote(beatIndex) {
-                const scale = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'D5', 'E5'];
-                const pattern = this.intensity > 50 ? 2 : 1;
-
-                if (beatIndex % 4 === 0) {
-                    return scale[0];
-                } else if (beatIndex % 4 === 2 && this.intensity > 30) {
-                    return scale[4];
-                } else {
-                    const maxIndex = pattern === 2 ? 7 : 5;
-                    return scale[Math.floor(Math.random() * maxIndex)];
-                }
-            },
-
-            getBassNote(beatIndex) {
-                const bassScale = ['C3', 'A3', 'F3', 'G3'];
-                const progressionIndex = Math.floor(beatIndex / 4) % 4;
-                return bassScale[progressionIndex];
-            },
-
             async generate() {
                 if (this.isGenerating) return;
+
+                if (!this.apiKey) {
+                    this.log('Ingresa tu API key de Mubert primero.\n\nObténela gratis en mubert.com', 'warning');
+                    return;
+                }
 
                 try {
                     this.isGenerating = true;
                     this.generateBtn.disabled = true;
-                    this.log('Inicializando audio...');
+                    this.log('Generando música con IA...\n(10-30 segundos)', 'warning');
 
-                    await this.initAudio();
+                    const response = await fetch('https://play.mubert.com/api/v1/track/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            tags: 'piano,calm,relaxing,children,story',
+                            duration: this.duration,
+                            mode: 'track',
+                            format: 'wav'
+                        })
+                    });
 
-                    this.log('Generando música (esto puede tomar unos segundos)...');
-
-                    this.synth = this.createSynth();
-                    this.addReverb(this.synth);
-
-                    this.bassSynth = new Tone.Synth({
-                        oscillator: { type: 'sine' },
-                        envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 0.8 }
-                    }).toDestination();
-                    this.addReverb(this.bassSynth);
-
-                    const bpm = 65;
-                    Tone.getTransport().bpm.value = bpm;
-
-                    const totalBeats = Math.floor((this.duration * bpm) / 60);
-                    const notes = [];
-                    const bassNotes = [];
-
-                    for (let i = 0; i < totalBeats; i++) {
-                        const note = this.getNote(i);
-                        notes.push({ time: i * (60 / bpm), note });
-
-                        if (i % 4 === 0) {
-                            bassNotes.push({ time: i * (60 / bpm), note: this.getBassNote(i) });
-                        }
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
                     }
 
-                    const mimeType = this.getSupportedMimeType();
-                    console.log('Using MIME type:', mimeType);
+                    const data = await response.json();
+                    
+                    if (!data.url) {
+                        throw new Error('No se recibió URL del audio');
+                    }
 
-                    this.recorder = new MediaRecorder(this.destNode.stream, {
-                        mimeType: mimeType
-                    });
-                    this.recordedChunks = [];
+                    this.log('Descargando audio...', 'warning');
 
-                    this.recorder.ondataavailable = (e) => {
-                        if (e.data.size > 0) {
-                            this.recordedChunks.push(e.data);
-                        }
-                    };
+                    const audioResponse = await fetch(data.url);
+                    if (!audioResponse.ok) {
+                        throw new Error('Error descargando el audio');
+                    }
 
-                    this.recorder.onerror = (e) => {
-                        console.error('Recorder error:', e);
-                    };
-
-                    this.recorder.onstop = () => {
-                        try {
-                            this.audioBlob = new Blob(this.recordedChunks, { type: mimeType });
-                            const url = URL.createObjectURL(this.audioBlob);
-                            this.audioPlayer.src = url;
-                            this.playerSection.classList.add('visible');
-                            this.log('¡Música lista! Haz clic en "Descargar WAV" para guardarla.', 'success');
-                        } catch (error) {
-                            console.error('Error creating blob:', error);
-                            this.log('Error al procesar el audio. Intenta de nuevo.', 'error');
-                        }
-                        this.generateBtn.disabled = false;
-                        this.isGenerating = false;
-                    };
-
-                    this.recorder.start();
-
-                    notes.forEach(n => {
-                        this.synth.triggerAttackRelease(n.note, '8n', Tone.now() + n.time);
-                    });
-
-                    bassNotes.forEach(n => {
-                        this.bassSynth.triggerAttackRelease(n.note, '2n', Tone.now() + n.time);
-                    });
-
-                    const endTime = totalBeats * (60 / bpm);
-                    Tone.getTransport().start();
-
-                    const progressTime = Math.min(endTime * 1000, 5000);
-                    setTimeout(() => {
-                        if (this.recorder && this.recorder.state === 'recording') {
-                            this.log('Finalizando grabación...');
-                        }
-                    }, progressTime);
-
-                    setTimeout(() => {
-                        if (this.recorder && this.recorder.state === 'recording') {
-                            this.recorder.stop();
-                            Tone.getTransport().stop();
-                        }
-                    }, (endTime + 2) * 1000);
+                    this.audioBlob = await audioResponse.blob();
+                    const url = URL.createObjectURL(this.audioBlob);
+                    
+                    this.audioPlayer.src = url;
+                    this.playerSection.classList.add('visible');
+                    
+                    this.log('Musica lista!\n\nUsa los botones para descargar.', 'success');
 
                 } catch (error) {
-                    console.error('Error in generate:', error);
-                    this.log('Error: ' + error.message, 'error');
+                    console.error('Error:', error);
+                    let message = 'Error: ' + error.message;
+                    if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                        message = 'API key invalida.\n\nObtén una nueva en mubert.com';
+                    }
+                    this.log(message, 'error');
+                } finally {
                     this.generateBtn.disabled = false;
                     this.isGenerating = false;
                 }
             },
 
-            async download() {
+            async download(format) {
                 if (!this.audioBlob) {
-                    this.log('Genera música primero.', 'error');
+                    this.log('Genera musica primero.', 'error');
                     return;
                 }
 
                 try {
-                    const arrayBuffer = await this.audioBlob.arrayBuffer();
-                    const wavBlob = this.audioBufferToWav(arrayBuffer);
-                    const url = URL.createObjectURL(wavBlob);
+                    let blob = this.audioBlob;
+                    let filename = `musica-cuento-${this.duration}s.${format}`;
 
+                    if (format === 'mp3') {
+                        this.log('Convirtiendo a MP3...');
+                        blob = await this.convertToMp3(this.audioBlob);
+                    }
+
+                    const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `musica-cuento-${this.duration}s.wav`;
+                    a.download = filename;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
 
-                    this.log('¡Descarga iniciada!', 'success');
+                    this.log(`${format.toUpperCase()} descargado!`, 'success');
                 } catch (error) {
-                    console.error('Error downloading:', error);
-                    this.log('Error al descargar. Intenta de nuevo.', 'error');
+                    console.error('Error:', error);
+                    this.log('Error al descargar.', 'error');
                 }
             },
 
+            async convertToMp3(wavBlob) {
+                const arrayBuffer = await wavBlob.arrayBuffer();
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                const offlineContext = new OfflineAudioContext(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+                
+                const source = offlineContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(offlineContext.destination);
+                source.start(0);
+                
+                const renderedBuffer = await offlineContext.startRendering();
+                
+                const wavBlob = this.audioBufferToWav(renderedBuffer);
+                return wavBlob;
+            },
+
             audioBufferToWav(buffer) {
-                const audioData = new Float32Array(buffer);
-                const sampleRate = this.audioContext.sampleRate;
+                const audioData = buffer.getChannelData(0);
+                const sampleRate = buffer.sampleRate;
                 const length = audioData.length;
-                const numChannels = 1;
+                const numChannels = buffer.numberOfChannels;
                 const bytesPerSample = 2;
                 const blockAlign = numChannels * bytesPerSample;
                 const byteRate = sampleRate * blockAlign;
@@ -593,8 +542,11 @@
 
                 const offset = 44;
                 for (let i = 0; i < length; i++) {
-                    const sample = Math.max(-1, Math.min(1, audioData[i]));
-                    view.setInt16(offset + i * 2, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    for (let ch = 0; ch < numChannels; ch++) {
+                        const channelData = buffer.getChannelData(ch);
+                        const sample = Math.max(-1, Math.min(1, channelData[i]));
+                        view.setInt16(offset + (i * numChannels + ch) * 2, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    }
                 }
 
                 return new Blob([arrayBuffer], { type: 'audio/wav' });
@@ -603,9 +555,8 @@
             new() {
                 this.playerSection.classList.remove('visible');
                 this.audioPlayer.src = '';
-                this.recordedChunks = [];
                 this.audioBlob = null;
-                this.log('Listo. Haz clic en "Generar Música" para crear una nueva pieza.');
+                this.log('Generador musical IA\nPiano samples reales\nLicencia CC0');
             }
         };
 
